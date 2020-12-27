@@ -25,7 +25,7 @@ def telemetry(sid, data):
             image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 
             # Calculate speed and steering angle
-            throttle, steering_angle = calculate_control_signal(current_speed, image)
+            throttle, steering_angle = calculate_control_signal(current_speed, image.copy())
 
             send_control(sio, steering_angle, throttle)
         except Exception as e:
