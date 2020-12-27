@@ -14,12 +14,15 @@ def calculate_control_signal(current_speed, image):
     steering_angle = 0
     left_point, right_point, im_center = find_lane_lines(image)
     if left_point != -1 and right_point != -1:
+
+        # Calculate difference between car center point and image center point
         center_point = (right_point + left_point) // 2
         center_diff =  center_point - im_center
 
+        # Calculate steering angle from center point difference
         steering_angle = int(center_diff * 0.1)
 
-    # speed_limit = get_speed_limit(current_speed)
+    # Constant throttle = 15
     throttle = 15
 
     return throttle, steering_angle
