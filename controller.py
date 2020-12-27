@@ -20,10 +20,10 @@ def calculate_control_signal(current_speed, image):
         center_diff =  center_point - im_center
 
         # Calculate steering angle from center point difference
-        steering_angle = int(center_diff * 0.1)
+        steering_angle = float(center_diff * 0.01)
 
     # Constant throttle = 15
-    throttle = 15
+    throttle = 10
 
     return throttle, steering_angle
 
