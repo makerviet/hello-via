@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 from utils import *
+from image_stream import image_streamer
 
 
 frame_id = 0
@@ -55,9 +56,16 @@ def birdview_transform(img):
 def preprocess(img):
     
     img = grayscale(img)
+    image_streamer.set_image("grayscale", img)
+
     img = gaussian_blur(img, 11)
+    image_streamer.set_image("gaussian_blur", img)
+
     img = canny(img, 150, 200)
+    image_streamer.set_image("canny", img)
+
     img = birdview_transform(img)
+    image_streamer.set_image("birdview", img)
 
     return img
 
