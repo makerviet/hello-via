@@ -1,0 +1,3 @@
+[submodule "src/traffic_sign_detection/yolov5"]
+	path = src/traffic_sign_detection/yolov5
+	url = https://github.com/ultralytics/yolov5/
