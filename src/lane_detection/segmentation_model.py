@@ -1,18 +1,22 @@
 import tensorflow as tf
 import cv2
+import os
 import numpy as np
 
 from ..utils.image_stream import image_streamer
 
 class LaneLineSegmentationModel:
 
-    def __init__(self, model_path):
+    def __init__(self, model_path, use_gpu=False):
 
         self.graph = tf.Graph()
-        self.sess = tf.InteractiveSession(graph = self.graph)
+        if not use_gpu:
+            os.environ["CUDA_VISIBLE_DEVICES"]="-1"    
+            self.sess = tf.InteractiveSession(graph = self.graph)
+
         with tf.gfile.GFile(model_path, 'rb') as f:
             graph_def = tf.GraphDef()
-            graph_def.ParseFromString(f.read())
+            graph_def.ParseFromString(f.read()) 
 
         # Print out nodes
         # print([n.op + "=>" + n.name for n in graph_def.node])

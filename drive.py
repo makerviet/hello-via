@@ -23,7 +23,7 @@ eventlet.monkey_patch()
 app = Flask(__name__, static_url_path='')
 sio = SocketIO(app)
 
-lane_line_model = LaneLineSegmentationModel("models/goodgame_laneline_pspnet_1712_0055.pb")
+lane_line_model = LaneLineSegmentationModel("models/goodgame_laneline_pspnet_1712_0055.pb", use_gpu=False)
 lane_detector = LaneDetector(use_deep_learning=True, lane_segmentation_model=lane_line_model)
 
 traffic_sign_detector = TrafficSignDetector("models/via_traffic_sign_detection_20210321.pt", use_gpu=False)

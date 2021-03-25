@@ -1,7 +1,7 @@
 import cv2
 from src.traffic_sign_detection.traffic_sign_detector import TrafficSignDetector
 
-model = TrafficSignDetector("models/via_traffic_sign_detection_20210321.pt", use_gpu=True)
+model = TrafficSignDetector("models/via_traffic_sign_detection_20210321.pt", use_gpu=False)
 
 # define a video capture object 
 vid = cv2.VideoCapture(0) 
