@@ -1,8 +1,9 @@
-eventlet==0.30.0
-Flask==1.1.2
-Flask-SocketIO==3.0.0
+eventlet==0.31.1
+Flask==2.0.1
+Flask-SocketIO==5.1.1
 numpy==1.19.3
 opencv-python==3.4.3.18
-Pillow==8.1.2
-python-engineio==3.0.0
-python-socketio==2.1.2
+Pillow==8.3.1
+python-engineio==4.2.1
+python-socketio==5.4.0
+websocket-client==1.2.1

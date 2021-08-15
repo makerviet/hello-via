@@ -1,13 +1,13 @@
 import base64
 import threading
-from io import BytesIO
 import time
+from io import BytesIO
 
 import cv2
 import eventlet
 import numpy as np
-from flask import (Flask, redirect, request,
-                   send_from_directory, jsonify)
+import websocket
+from flask import Flask, jsonify, redirect, request, send_from_directory
 from flask_socketio import SocketIO
 from PIL import Image
 from werkzeug import debug
@@ -21,29 +21,17 @@ eventlet.monkey_patch()
 app = Flask(__name__, static_url_path='')
 sio = SocketIO(app)
 
-@sio.on('telemetry')
-def telemetry(data):
-    global debug_images
 
-    if data:
-        throttle = float(data["throttle"])
-        steering_angle = float(data["steering_angle"])
-        current_speed = float(data["speed"])
-        image = Image.open(BytesIO(base64.b64decode(data["image"])))
-        try:
-            image = np.asarray(image)
-            image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-            image_streamer.set_image("rgb", image)
+def on_message(ws, message):
+    data = json.loads(message)
+    image = Image.open(BytesIO(base64.b64decode(data["image"])))
+    image = np.asarray(image)
+    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+    image_streamer.set_image("rgb", image)
 
-            # Calculate speed and steering angle
-            throttle, steering_angle = calculate_control_signal(
-                current_speed, image.copy())
-
-            send_control(sio, steering_angle, throttle)
-        except Exception as e:
-            print(e)
-    else:
-        sio.emit('manual', data={}, skip_sid=True)
+    # Calculate speed and steering angle
+    throttle, steering_angle = calculate_control_signal(image.copy())
+    send_control(ws, steering_angle, throttle)
 
 
 @app.route('/')
@@ -85,6 +73,7 @@ def set_topic():
             "message": message
         })
 
+# Start info streaming thread
 def info_thread_func(sio):
     global count
     while True:
@@ -97,11 +86,22 @@ def info_thread_func(sio):
                 'topic': image_streamer.get_current_topic()
             },
             skip_sid=True, broadcast=True)
-
-# Start info streaming thread
 info_thread = threading.Thread(target=info_thread_func, args=(sio,))
 info_thread.setDaemon(True)
 info_thread.start()
 
-print("Starting server. Go to: http://localhost:4567")
-sio.run(app, port=4567)
+
+def websocket_client_func():
+    global on_message
+    def on_error(ws, error):
+        print(error)
+    ws = websocket.WebSocketApp("ws://127.0.0.1:4567/simulation",
+    on_message=on_message,
+    on_error=on_error)
+    ws.run_forever()
+websocket_client_thread = threading.Thread(target=websocket_client_func)
+websocket_client_thread.setDaemon(True)
+websocket_client_thread.start()
+
+print("Starting server. Go to: http://localhost:8080")
+sio.run(app, port=8080)

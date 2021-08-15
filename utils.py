@@ -1,7 +1,6 @@
 import cv2
-from pathlib import Path
-import os
 import base64
+import json
 
 MAX_SPEED = 25
 MIN_SPEED = 10
@@ -15,14 +14,8 @@ def get_speed_limit(speed):
         speed_limit = MAX_SPEED
     return speed_limit
 
-def send_control(sio, steering_angle, throttle):
-    sio.emit(
-        "steer",
-        data={
-            'steering_angle': steering_angle.__str__(),
-            'throttle': throttle.__str__()
-        },
-        skip_sid=True)
+def send_control(ws, steering_angle, throttle):
+    ws.send(json.dumps({"throttle": throttle, "steering": steering_angle}))
 
 def convert_image_to_jpeg(image):
     frame = cv2.imencode('.jpg', image)[1].tobytes()

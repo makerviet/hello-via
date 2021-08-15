@@ -3,15 +3,7 @@ import numpy as np
 from utils import *
 from image_stream import image_streamer
 
-
-frame_id = 0
-
-def calculate_control_signal(current_speed, image):
-    global frame_id
-
-    frame_id += 1
-    # write_image("rgb", frame_id, image)
-
+def calculate_control_signal(image):
     steering_angle = 0
     left_point, right_point, im_center = find_lane_lines(image)
     if left_point != -1 and right_point != -1:
@@ -21,7 +13,7 @@ def calculate_control_signal(current_speed, image):
         center_diff =  center_point - im_center
 
         # Calculate steering angle from center point difference
-        steering_angle = float(center_diff * 0.04)
+        steering_angle = float(center_diff * 0.01)
 
     # Constant throttle = 0.5 * MAX SPEED
     throttle = 0.5
@@ -30,24 +22,23 @@ def calculate_control_signal(current_speed, image):
 
 
 def grayscale(img):
-    """Chuyển ảnh màu sang ảnh xám"""
+    """Convert image to grayscale"""
     return cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
 def canny(img, low_threshold, high_threshold):
-    """Applies the Canny transform"""
+    """Apply the Canny transform"""
     return cv2.Canny(img, low_threshold, high_threshold)
 
 def gaussian_blur(img, kernel_size):
-    """Applies a Gaussian Noise kernel"""
+    """Apply a Gaussian Noise kernel"""
     return cv2.GaussianBlur(img, (kernel_size, kernel_size), 0)
 
 def birdview_transform(img):
-
-    IMAGE_H = 160
-    IMAGE_W = 320
-
-    src = np.float32([[0, IMAGE_H], [320, IMAGE_H], [0, IMAGE_H//3], [IMAGE_W, IMAGE_H//3]])
-    dst = np.float32([[90, IMAGE_H], [230, IMAGE_H], [-10, 0], [IMAGE_W+10, 0]])
+    """Apply birdview transform"""
+    IMAGE_H = 480
+    IMAGE_W = 640
+    src = np.float32([[0, IMAGE_H], [640, IMAGE_H], [0, IMAGE_H * 0.4], [IMAGE_W, IMAGE_H * 0.4]])
+    dst = np.float32([[240, IMAGE_H], [640 - 240, IMAGE_H], [-160, 0], [IMAGE_W+160, 0]])
     M = cv2.getPerspectiveTransform(src, dst) # The transformation matrix
     warped_img = cv2.warpPerspective(img, M, (IMAGE_W, IMAGE_H)) # Image warping
     return warped_img
@@ -79,7 +70,7 @@ def find_lane_lines(image, draw=False):
     if draw: viz_img = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
 
     # Vạch kẻ sử dụng để xác định tâm đường
-    interested_line_y = int(im_height * 0.7)
+    interested_line_y = int(im_height * 0.9)
     if draw: cv2.line(viz_img, (0, interested_line_y), (im_width, interested_line_y), (0, 0, 255), 2) 
     interested_line = image[interested_line_y, :]
 
