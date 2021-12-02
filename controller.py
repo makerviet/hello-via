@@ -2,9 +2,52 @@ import cv2
 import numpy as np
 from utils import *
 from image_stream import image_streamer
+import time
 
 
 frame_id = 0
+
+class PID(object):
+    def __init__(self, kp=1.0, ki=0.0, kd=0.0, setpoint=0.0):
+        # tham số PID
+        self.kp = kp 
+        self.ki = ki
+        self.kd = kd
+        self.setpoint = setpoint
+
+        # đếm thời gian 
+        self.time_extract = time.monotonic
+
+        # trạng thái hệ thống
+        self._last_time = self.time_extract()
+        self._last_state = None
+        self._integral = 0
+
+
+    def __call__(self, state):
+        error = self.setpoint - state
+        d_state = state - self._last_state if (self._last_state is not None) else 0
+        d_error = -d_state
+        now = self.time_extract()
+        d_time = now - self._last_time
+        # kiểm tra nếu d_time là 0
+        d_time = d_time if (d_time) else 1e-12
+
+        self._integral += self.ki*error*d_time
+        proportional = self.kp*error
+        derivative = self.kd*d_error/d_time
+
+        # tính toán điều khiển
+        control_signal = proportional + self._integral + derivative
+
+        # cập nhật trạng thái
+        self._last_state = state
+        self._last_time = now
+
+        return control_signal
+
+# Khai báo bộ điều khiển PID
+pid = PID(0.05, 0.00, 0.005, setpoint=0)
 
 def calculate_control_signal(current_speed, image):
     global frame_id
@@ -21,13 +64,16 @@ def calculate_control_signal(current_speed, image):
         center_diff =  center_point - im_center
 
         # Calculate steering angle from center point difference
-        steering_angle = float(center_diff * 0.04)
+        # steering_angle = float(center_diff * 0.05)
+
+        # áp dụng bộ điều khiển PID
+        steering_angle = -pid(center_diff)
+
 
     # Constant throttle = 0.5 * MAX SPEED
-    throttle = 0.5
+    throttle = 0.8
 
     return throttle, steering_angle
-
 
 def grayscale(img):
     """Chuyển ảnh màu sang ảnh xám"""
